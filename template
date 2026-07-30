@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinPulse — Update Preferences</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f4f4;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      max-width: 540px;
+      width: 100%;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.10);
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #E31837;
+      padding: 28px 32px 24px;
+      color: white;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .brand-dot {
+      width: 10px; height: 10px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.7;
+    }
+    .brand-name {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      opacity: 0.9;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .header p {
+      font-size: 13px;
+      opacity: 0.80;
+      margin-top: 5px;
+    }
+
+    /* ── Body ── */
+    .body { padding: 28px 32px; }
+
+    .email-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f9f9f9;
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
+      padding: 11px 16px;
+      margin-bottom: 28px;
+      font-size: 13px;
+      color: #666;
+    }
+    .email-badge .dot {
+      width: 8px; height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .email-badge strong { color: #222; }
+
+    .group-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+
+    /* ── Section checkboxes ── */
+    .sections { margin-bottom: 28px; }
+
+    .section-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 0;
+      border-bottom: 1px solid #f2f2f2;
+      cursor: pointer;
+    }
+    .section-item:last-child { border-bottom: none; }
+
+    .section-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #E31837;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .section-item .section-text { flex: 1; }
+    .section-item .section-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    .section-item .section-desc {
+      font-size: 12px;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    /* ── Competitor chips ── */
+    .competitors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .chip:hover { border-color: #E31837; color: #E31837; }
+    .chip.selected {
+      border-color: #E31837;
+      background: #fff0f2;
+      color: #E31837;
+      font-weight: 600;
+    }
+    .chip input { display: none; }
+
+    /* ── Submit ── */
+    .submit-btn {
+      width: 100%;
+      background: #E31837;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      padding: 15px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      transition: background 0.15s;
+    }
+    .submit-btn:hover { background: #c0142e; }
+    .submit-btn:active { background: #a01028; }
+
+    /* ── Confirmation ── */
+    .confirmation {
+      display: none;
+      text-align: center;
+      padding: 48px 32px;
+    }
+    .check-circle {
+      width: 64px; height: 64px;
+      background: #f0fdf4;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 28px;
+    }
+    .confirmation h2 { font-size: 20px; color: #1a1a1a; margin-bottom: 8px; }
+    .confirmation p { font-size: 14px; color: #777; line-height: 1.6; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #ccc;
+      padding: 14px 32px;
+      border-top: 1px solid #f2f2f2;
+    }
+
+    .error-msg {
+      background: #fff5f5;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div class="brand-dot"></div>
+      <div class="brand-name">FinPulse · Techcombank</div>
+    </div>
+    <h1>Update your report preferences</h1>
+    <p>Choose the sections you want in your weekly market briefing</p>
+  </div>
+
+  <!-- Form body -->
+  <div class="body" id="form-body">
+
+    <div style="margin-bottom: 24px;">
+      <div class="group-label" style="margin-bottom: 8px;">Your email</div>
+      <input type="email" id="email-input"
+        placeholder="your email"
+        style="width:100%; padding: 10px 14px; border: 1.5px solid #ddd; border-radius: 6px;
+               font-size: 14px; font-family: inherit; color: #222; outline: none;"
+        onfocus="this.style.borderColor='#E31837'"
+        onblur="this.style.borderColor='#ddd'">
+    </div>
+
+    <div class="error-msg" id="error-msg">Please select at least one section.</div>
+
+    <!-- Sections -->
+    <div class="group-label">Report Sections</div>
+    <div class="sections" id="sections-list">
+      <!-- Injected by JS -->
+    </div>
+
+    <!-- Competitors -->
+    <div class="group-label">Competitor Focus</div>
+    <div class="competitors" id="competitors-list">
+      <!-- Injected by JS -->
+    </div>
+
+    <button class="submit-btn" onclick="submitForm()">Save Preferences →</button>
+
+  </div>
+
+  <!-- Confirmation -->
+  <div class="confirmation" id="confirmation">
+    <div class="check-circle">✓</div>
+    <h2>Preferences saved</h2>
+    <p>Your request has been sent to the FinPulse team.<br>Changes will apply from next week's report.</p>
+  </div>
+
+  <div class="footer">FinPulse Market Intelligence · Techcombank</div>
+</div>
+
+<script>
+  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xpqvbrqz';
+
+  const SECTIONS = [
+    { value: 'Regulation',           desc: 'Circulars, credit quotas, SBV directives, sustainable finance' },
+    { value: 'Lending',              desc: 'Loan growth, rates, disbursement programs, personal loans, real estate credit, NPLs' },
+    { value: 'Deposits',             desc: 'TCB rate positioning vs. market peers' },
+    { value: 'Digital & Fintech',    desc: 'Payments, AI, eKYC, fintech partnerships' },
+    { value: 'Competitor Highlights',desc: 'Profitability, credit growth, capital raises, new products' },
+  ];
+
+  const ALL_COMPETITORS = [
+    'VPBank','ACB','MBBank','VCB','BIDV','VietinBank','TPBank','Agribank','HDBank','MSB','OCB','STB'
+  ];
+
+  /* ── Parse URL params ── */
+  function getParams() {
+    const p = new URLSearchParams(window.location.search);
+    return {
+      email:       p.get('email') || '',
+      sections:    (p.get('sections') || '').split(';').map(s => s.trim()).filter(Boolean),
+      concurrents: (p.get('concurrents') || '').split(';').map(s => s.trim()).filter(Boolean),
+    };
+  }
+
+  /* ── Build the form ── */
+  function init() {
+    const { email, sections, concurrents } = getParams();
+
+    if (email) document.getElementById('email-input').value = email;
+
+    // Sections
+    const sl = document.getElementById('sections-list');
+    SECTIONS.forEach(s => {
+      const checked = sections.includes(s.value) ? 'checked' : '';
+      sl.innerHTML += `
+        <label class="section-item">
+          <input type="checkbox" name="section" value="${s.value}" ${checked}>
+          <div class="section-text">
+            <div class="section-name">${s.value}</div>
+            <div class="section-desc">${s.desc}</div>
+          </div>
+        </label>`;
+    });
+
+    // Competitors
+    const cl = document.getElementById('competitors-list');
+    ALL_COMPETITORS.forEach(bank => {
+      const selected = concurrents.includes(bank) ? 'selected' : '';
+      const checked  = concurrents.includes(bank) ? 'checked' : '';
+      const chip = document.createElement('label');
+      chip.className = `chip ${selected}`;
+      chip.innerHTML = `<input type="checkbox" name="concurrent" value="${bank}" ${checked}> ${bank}`;
+      chip.querySelector('input').addEventListener('change', function() {
+        chip.classList.toggle('selected', this.checked);
+      });
+      cl.appendChild(chip);
+    });
+  }
+
+  /* ── Submit → mailto ── */
+  function submitForm() {
+    const email       = document.getElementById('email-input').value.trim();
+    const sections    = [...document.querySelectorAll('input[name="section"]:checked')].map(cb => cb.value);
+    const concurrents = [...document.querySelectorAll('input[name="concurrent"]:checked')].map(cb => cb.value);
+
+    const errEl = document.getElementById('error-msg');
+    if (!email) {
+      errEl.textContent = 'Please enter your email address.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (!sections.length) {
+      errEl.textContent = 'Please select at least one section.';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const subject = `[FinPulse] Preference Update — ${email}`;
+    const body =
+`PREFERENCE UPDATE REQUEST
+─────────────────────────────
+Email:       ${email}
+Sections:    ${sections.join('; ')}
+Concurrents: ${concurrents.join('; ') || '(none)'}
+─────────────────────────────
+Please update subscribers.csv accordingly.`;
+
+    if (FORMSPREE_ENDPOINT) {
+      // Automatic email via Formspree
+      fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email, sections: sections.join('; '), concurrents: concurrents.join('; ') || '(none)', _subject: subject }),
+      })
+      .then(r => r.json().then(data => ({ ok: r.ok, data })))
+      .then(({ ok, data }) => {
+        if (!ok || data.errors) {
+          const detail = (data.errors || []).map(e => e.message).join(', ');
+          errEl.textContent = detail || 'Submission failed. Please try again.';
+          errEl.style.display = 'block';
+          return;
+        }
+        document.getElementById('form-body').style.display = 'none';
+        document.getElementById('confirmation').style.display = 'block';
+      })
+      .catch(() => {
+        errEl.textContent = 'Submission failed. Please try again.';
+        errEl.style.display = 'block';
+      });
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
