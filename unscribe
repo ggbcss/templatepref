@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinPulse — Unsubscribe</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f4f4;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.10);
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #E31837;
+      padding: 28px 32px 24px;
+      color: white;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .brand-dot {
+      width: 10px; height: 10px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.7;
+    }
+    .brand-name {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      opacity: 0.9;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .header p {
+      font-size: 13px;
+      opacity: 0.80;
+      margin-top: 5px;
+    }
+
+    /* ── Body ── */
+    .body { padding: 28px 32px; }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #aaa;
+      margin-bottom: 8px;
+    }
+
+    input[type="email"], textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #222;
+      outline: none;
+    }
+    input[type="email"]:focus, textarea:focus { border-color: #E31837; }
+    textarea { resize: vertical; min-height: 70px; }
+
+    .field { margin-bottom: 20px; }
+
+    .submit-btn {
+      width: 100%;
+      background: #E31837;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      padding: 15px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      transition: background 0.15s;
+    }
+    .submit-btn:hover { background: #c0142e; }
+    .submit-btn:active { background: #a01028; }
+
+    .cancel-link {
+      display: block;
+      text-align: center;
+      margin-top: 14px;
+      font-size: 13px;
+      color: #999;
+      text-decoration: none;
+    }
+    .cancel-link:hover { color: #666; }
+
+    /* ── Confirmation ── */
+    .confirmation {
+      display: none;
+      text-align: center;
+      padding: 48px 32px;
+    }
+    .check-circle {
+      width: 64px; height: 64px;
+      background: #f0fdf4;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 28px;
+    }
+    .confirmation h2 { font-size: 20px; color: #1a1a1a; margin-bottom: 8px; }
+    .confirmation p { font-size: 14px; color: #777; line-height: 1.6; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #ccc;
+      padding: 14px 32px;
+      border-top: 1px solid #f2f2f2;
+    }
+
+    .error-msg {
+      background: #fff5f5;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div class="brand-dot"></div>
+      <div class="brand-name">FinPulse · Techcombank</div>
+    </div>
+    <h1>Unsubscribe</h1>
+    <p>We're sorry to see you go. Confirm below to stop receiving reports.</p>
+  </div>
+
+  <!-- Form body -->
+  <div class="body" id="form-body">
+
+    <div class="error-msg" id="error-msg">Please enter your email address.</div>
+
+    <div class="field">
+      <div class="field-label">Your email</div>
+      <input type="email" id="email-input" placeholder="your email">
+    </div>
+
+    <div class="field">
+      <div class="field-label">Reason (optional)</div>
+      <textarea id="reason-input" placeholder="Let us know why you're unsubscribing..."></textarea>
+    </div>
+
+    <button class="submit-btn" onclick="submitForm()">Confirm Unsubscribe</button>
+    <a class="cancel-link" href="javascript:window.close()">Cancel, keep my subscription</a>
+
+  </div>
+
+  <!-- Confirmation -->
+  <div class="confirmation" id="confirmation">
+    <div class="check-circle">✓</div>
+    <h2>You're unsubscribed</h2>
+    <p>Your request has been sent to the FinPulse team.<br>You'll be removed within a few business days.</p>
+  </div>
+
+  <div class="footer">FinPulse Market Intelligence · Techcombank</div>
+</div>
+
+<script>
+  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/maqrkzqn';
+
+  function submitForm() {
+    const email  = document.getElementById('email-input').value.trim();
+    const reason = document.getElementById('reason-input').value.trim();
+
+    const errEl = document.getElementById('error-msg');
+    if (!email) {
+      errEl.textContent = 'Please enter your email address.';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const subject = `[FinPulse] Unsubscribe Request — ${email}`;
+
+    fetch(FORMSPREE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        email,
+        request_type: 'UNSUBSCRIBE',
+        reason: reason || '(none)',
+        _subject: subject,
+      }),
+    })
+    .then(r => r.json().then(data => ({ ok: r.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok || data.errors) {
+        const detail = (data.errors || []).map(e => e.message).join(', ');
+        errEl.textContent = detail || 'Submission failed. Please try again.';
+        errEl.style.display = 'block';
+        return;
+      }
+      document.getElementById('form-body').style.display = 'none';
+      document.getElementById('confirmation').style.display = 'block';
+    })
+    .catch(() => {
+      errEl.textContent = 'Submission failed. Please try again.';
+      errEl.style.display = 'block';
+    });
+  }
+</script>
+</body>
+</html>
