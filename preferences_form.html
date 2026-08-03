@@ -126,36 +126,6 @@
       margin-top: 2px;
     }
 
-    /* ── Competitor chips ── */
-    .competitors {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 28px;
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 7px 14px;
-      border: 1.5px solid #ddd;
-      border-radius: 20px;
-      font-size: 13px;
-      color: #555;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      user-select: none;
-    }
-    .chip:hover { border-color: #E31837; color: #E31837; }
-    .chip.selected {
-      border-color: #E31837;
-      background: #fff0f2;
-      color: #E31837;
-      font-weight: 600;
-    }cir
-    .chip input { display: none; }
-
     /* ── Submit ── */
     .submit-btn {
       width: 100%;
@@ -247,11 +217,6 @@
       <!-- Injected by JS -->
     </div>
 
-    <!-- Competitors -->
-    <div class="group-label">Competitor Focus</div>
-    <div class="competitors" id="competitors-list">
-      <!-- Injected by JS -->
-    </div>
 
     <button class="submit-btn" onclick="submitForm()">Save Preferences →</button>
 
@@ -271,33 +236,28 @@
   const FORMSPREE_ENDPOINT = 'https://formspree.io/f/maqrkzqn';
 
   const SECTIONS = [
-    { value: 'Lending',              desc: ' ' },
-    { value: 'Insurance',            desc: ' ' },
-    { value: 'Deposits',             desc: ' ' },
-    { value: 'Digital & Fintech',    desc: ' ' },
-    { value: 'Competitor Highlights',desc: ' ' },
-    { value: 'Regulation',           desc: ' ' },
-    { value: 'Real Estate',          desc: ' ' },
-
+    { value: 'Regulation',           desc: 'Circulars, credit quotas, SBV directives, sustainable finance' },
+    { value: 'Lending',              desc: 'Loan growth, rates, disbursement programs, personal loans, NPLs' },
+    { value: 'Real Estate',          desc: 'Mortgage rates, developer bonds, loan securitization, property credit risk' },
+    { value: 'Insurance',            desc: 'Bancassurance partnerships and insurance-linked banking products' },
+    { value: 'Deposits',             desc: 'TCB rate positioning vs. market peers' },
+    { value: 'Digital & Fintech',    desc: 'Payments, AI, eKYC, fintech partnerships' },
+    { value: 'Competitor Highlights',desc: 'Profitability, credit growth, capital raises, new products' },
   ];
 
-  const ALL_COMPETITORS = [
-    'VPBank','ACB','MBBank','VCB','BIDV','VietinBank','TPBank','Agribank','HDBank','MSB','OCB','STB'
-  ];
 
   /* ── Parse URL params ── */
   function getParams() {
     const p = new URLSearchParams(window.location.search);
     return {
-      email:       p.get('email') || '',
-      sections:    (p.get('sections') || '').split(';').map(s => s.trim()).filter(Boolean),
-      concurrents: (p.get('concurrents') || '').split(';').map(s => s.trim()).filter(Boolean),
+      email:    p.get('email') || '',
+      sections: (p.get('sections') || '').split(';').map(s => s.trim()).filter(Boolean),
     };
   }
 
   /* ── Build the form ── */
   function init() {
-    const { email, sections, concurrents } = getParams();
+    const { email, sections } = getParams();
 
     if (email) document.getElementById('email-input').value = email;
 
@@ -314,27 +274,12 @@
           </div>
         </label>`;
     });
-
-    // Competitors
-    const cl = document.getElementById('competitors-list');
-    ALL_COMPETITORS.forEach(bank => {
-      const selected = concurrents.includes(bank) ? 'selected' : '';
-      const checked  = concurrents.includes(bank) ? 'checked' : '';
-      const chip = document.createElement('label');
-      chip.className = `chip ${selected}`;
-      chip.innerHTML = `<input type="checkbox" name="concurrent" value="${bank}" ${checked}> ${bank}`;
-      chip.querySelector('input').addEventListener('change', function() {
-        chip.classList.toggle('selected', this.checked);
-      });
-      cl.appendChild(chip);
-    });
   }
 
   /* ── Submit → mailto ── */
   function submitForm() {
-    const email       = document.getElementById('email-input').value.trim();
-    const sections    = [...document.querySelectorAll('input[name="section"]:checked')].map(cb => cb.value);
-    const concurrents = [...document.querySelectorAll('input[name="concurrent"]:checked')].map(cb => cb.value);
+    const email    = document.getElementById('email-input').value.trim();
+    const sections = [...document.querySelectorAll('input[name="section"]:checked')].map(cb => cb.value);
 
     const errEl = document.getElementById('error-msg');
     if (!email) {
@@ -355,7 +300,6 @@
 ─────────────────────────────
 Email:       ${email}
 Sections:    ${sections.join('; ')}
-Concurrents: ${concurrents.join('; ') || '(none)'}
 ─────────────────────────────
 Please update subscribers.csv accordingly.`;
 
@@ -364,7 +308,7 @@ Please update subscribers.csv accordingly.`;
       fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ email, sections: sections.join('; '), concurrents: concurrents.join('; ') || '(none)', _subject: subject }),
+        body: JSON.stringify({ email, sections: sections.join('; '), _subject: subject }),
       })
       .then(r => r.json().then(data => ({ ok: r.ok, data })))
       .then(({ ok, data }) => {
