@@ -216,7 +216,7 @@
     <div class="sections" id="sections-list">
       <!-- Injected by JS -->
     </div>
-
+   
 
     <button class="submit-btn" onclick="submitForm()">Save Preferences →</button>
 
@@ -226,14 +226,20 @@
   <div class="confirmation" id="confirmation">
     <div class="check-circle">✓</div>
     <h2>Preferences saved</h2>
-    <p>Your request has been sent to the FinPulse team.<br>Changes will apply from next week's report.</p>
+    <p>Your preferences were updated and a fresh report is on its way to your inbox now.</p>
   </div>
 
   <div class="footer">FinPulse Market Intelligence · Techcombank</div>
 </div>
 
 <script>
-  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/maqrkzqn';
+  // Deployed 2026-08-05: finpulse-instant-resend Lambda Function URL. This secret is
+  // visible to anyone who views this page's source — see the security note in
+  // lambda/lambda_function.py's docstring for why that's an accepted tradeoff for v1,
+  // not an oversight. If the secret is ever rotated, update RESEND_SHARED_SECRET on the
+  // Lambda's environment variables AND this value together, or auth breaks.
+  const RESEND_ENDPOINT = 'https://olpwvwoyuaot234dbb43hjt2sy0ywcgb.lambda-url.ap-southeast-1.on.aws/';
+  const SHARED_SECRET = 'VAP7TcINed01xl_qsL_4j_HrjENH3icUcorau4fsQP4';
 
   const SECTIONS = [
     { value: 'Regulation',           desc: 'Circulars, credit quotas, SBV directives, sustainable finance' },
@@ -276,7 +282,7 @@
     });
   }
 
-  /* ── Submit → mailto ── */
+  /* ── Submit → instant-resend Lambda ── */
   function submitForm() {
     const email    = document.getElementById('email-input').value.trim();
     const sections = [...document.querySelectorAll('input[name="section"]:checked')].map(cb => cb.value);
@@ -294,41 +300,28 @@
     }
     errEl.style.display = 'none';
 
-    const subject = `[FinPulse] Preference Update — ${email}`;
-    const body =
-`PREFERENCE UPDATE REQUEST
-─────────────────────────────
-Email:       ${email}
-Sections:    ${sections.join('; ')}
-─────────────────────────────
-Please update subscribers.csv accordingly.`;
-
-    if (FORMSPREE_ENDPOINT) {
-      // Automatic email via Formspree
-      fetch(FORMSPREE_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ email, sections: sections.join('; '), _subject: subject }),
-      })
-      .then(r => r.json().then(data => ({ ok: r.ok, data })))
-      .then(({ ok, data }) => {
-        if (!ok || data.errors) {
-          const detail = (data.errors || []).map(e => e.message).join(', ');
-          errEl.textContent = detail || 'Submission failed. Please try again.';
-          errEl.style.display = 'block';
-          return;
-        }
-        document.getElementById('form-body').style.display = 'none';
-        document.getElementById('confirmation').style.display = 'block';
-      })
-      .catch(() => {
-        errEl.textContent = 'Submission failed. Please try again.';
+    fetch(RESEND_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-FinPulse-Secret': SHARED_SECRET },
+      body: JSON.stringify({ email, sections }),
+    })
+    .then(r => r.json().then(data => ({ ok: r.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) {
+        errEl.textContent = data.error || 'Submission failed. Please try again.';
         errEl.style.display = 'block';
-      });
-    }
+        return;
+      }
+      document.getElementById('form-body').style.display = 'none';
+      document.getElementById('confirmation').style.display = 'block';
+    })
+    .catch(() => {
+      errEl.textContent = 'Submission failed. Please try again.';
+      errEl.style.display = 'block';
+    });
   }
 
   init();
 </script>
 </body>
-</html>
+</html>""
