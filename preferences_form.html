@@ -142,6 +142,7 @@
     }
     .submit-btn:hover { background: #c0142e; }
     .submit-btn:active { background: #a01028; }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
     /* ── Confirmation ── */
     .confirmation {
@@ -218,7 +219,7 @@
     </div>
    
 
-    <button class="submit-btn" onclick="submitForm()">Save Preferences →</button>
+    <button class="submit-btn" id="submit-btn" onclick="submitForm()">Save Preferences →</button>
 
   </div>
 
@@ -240,6 +241,8 @@
   // Lambda's environment variables AND this value together, or auth breaks.
   const RESEND_ENDPOINT = 'https://olpwvwoyuaot234dbb43hjt2sy0ywcgb.lambda-url.ap-southeast-1.on.aws/';
   const SHARED_SECRET = 'VAP7TcINed01xl_qsL_4j_HrjENH3icUcorau4fsQP4';
+
+  let isSubmitting = false;
 
   const SECTIONS = [
     { value: 'Regulation',           desc: 'Circulars, credit quotas, SBV directives, sustainable finance' },
@@ -284,6 +287,8 @@
 
   /* ── Submit → instant-resend Lambda ── */
   function submitForm() {
+    if (isSubmitting) return;
+
     const email    = document.getElementById('email-input').value.trim();
     const sections = [...document.querySelectorAll('input[name="section"]:checked')].map(cb => cb.value);
 
@@ -300,6 +305,12 @@
     }
     errEl.style.display = 'none';
 
+    const btn = document.getElementById('submit-btn');
+    const originalLabel = btn.textContent;
+    isSubmitting = true;
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
     fetch(RESEND_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-FinPulse-Secret': SHARED_SECRET },
@@ -310,6 +321,9 @@
       if (!ok) {
         errEl.textContent = data.error || 'Submission failed. Please try again.';
         errEl.style.display = 'block';
+        isSubmitting = false;
+        btn.disabled = false;
+        btn.textContent = originalLabel;
         return;
       }
       document.getElementById('form-body').style.display = 'none';
@@ -318,6 +332,9 @@
     .catch(() => {
       errEl.textContent = 'Submission failed. Please try again.';
       errEl.style.display = 'block';
+      isSubmitting = false;
+      btn.disabled = false;
+      btn.textContent = originalLabel;
     });
   }
 
