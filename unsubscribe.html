@@ -193,14 +193,21 @@
   <div class="confirmation" id="confirmation">
     <div class="check-circle">✓</div>
     <h2>You're unsubscribed</h2>
-    <p>Your request has been sent to the FinPulse team.<br>You'll be removed within a few business days.</p>
+    <p>You've been removed from the FinPulse mailing list.<br>You won't receive further reports.</p>
   </div>
 
   <div class="footer">FinPulse Market Intelligence · Techcombank</div>
 </div>
 
 <script>
-  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/maqrkzqn';
+  // Same finpulse-instant-resend Lambda Function URL as preferences_form.html. This secret
+  // is visible to anyone who views this page's source — see the security note in
+  // lambda/lambda_function.py's docstring for why that's an accepted tradeoff for v1,
+  // not an oversight. If the secret is ever rotated, update RESEND_SHARED_SECRET on the
+  // Lambda's environment variables AND this value (and preferences_form.html's) together,
+  // or auth breaks.
+  const RESEND_ENDPOINT = 'https://olpwvwoyuaot234dbb43hjt2sy0ywcgb.lambda-url.ap-southeast-1.on.aws/';
+  const SHARED_SECRET = 'VAP7TcINed01xl_qsL_4j_HrjENH3icUcorau4fsQP4';
 
   let isSubmitting = false;
 
@@ -218,29 +225,21 @@
     }
     errEl.style.display = 'none';
 
-    const subject = `[FinPulse] Unsubscribe Request — ${email}`;
-
     const btn = document.getElementById('submit-btn');
     const originalLabel = btn.textContent;
     isSubmitting = true;
     btn.disabled = true;
     btn.textContent = 'Submitting…';
 
-    fetch(FORMSPREE_ENDPOINT, {
+    fetch(RESEND_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        email,
-        request_type: 'UNSUBSCRIBE',
-        reason: reason || '(none)',
-        _subject: subject,
-      }),
+      headers: { 'Content-Type': 'application/json', 'X-FinPulse-Secret': SHARED_SECRET },
+      body: JSON.stringify({ action: 'unsubscribe', email, reason }),
     })
     .then(r => r.json().then(data => ({ ok: r.ok, data })))
     .then(({ ok, data }) => {
-      if (!ok || data.errors) {
-        const detail = (data.errors || []).map(e => e.message).join(', ');
-        errEl.textContent = detail || 'Submission failed. Please try again.';
+      if (!ok) {
+        errEl.textContent = data.error || 'Submission failed. Please try again.';
         errEl.style.display = 'block';
         isSubmitting = false;
         btn.disabled = false;
