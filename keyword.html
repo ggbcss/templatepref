@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FinPulse — Add a Keyword</title>
+  <title>FinPulse — Suggest a Topic</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -94,6 +94,28 @@
       margin-top: 6px;
     }
 
+    .sentence {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.5;
+      margin: 28px 0 32px;
+    }
+    .sentence .inline-input {
+      border: none;
+      border-bottom: 2px solid #E31837;
+      background: transparent;
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      font-family: inherit;
+      outline: none;
+      padding: 0 2px 2px;
+      min-width: 140px;
+      width: auto;
+    }
+    .sentence .inline-input::placeholder { color: #ccc; font-weight: 400; }
+
     .submit-btn {
       width: 100%;
       background: #E31837;
@@ -160,50 +182,48 @@
       <div class="brand-dot"></div>
       <div class="brand-name">FinPulse · Techcombank</div>
     </div>
-    <h1>Add a keyword</h1>
-    <p>Adds a row directly to the MRT keyword dictionary</p>
+    <h1>Want to see more of something?</h1>
+    <p>Tell us what to look out for in your next briefing</p>
   </div>
 
   <!-- Form body -->
   <div class="body" id="form-body">
 
-    <div class="error-msg" id="error-msg">Please fill in the required fields.</div>
+    <div class="error-msg" id="error-msg">Please fill in both fields.</div>
 
     <div class="field">
-      <div class="field-label">Category</div>
+      <div class="field-label">Theme</div>
       <select id="category-input">
         <!-- Injected by JS -->
       </select>
     </div>
 
-    <div class="field">
-      <div class="field-label">Keyword</div>
-      <input type="text" id="keyword-input" placeholder="e.g. green bond" maxlength="200">
+    <div class="sentence">
+      I wish more of <input type="text" id="keyword-input" class="inline-input" placeholder="e.g. green bonds" maxlength="200">
     </div>
 
-    <div class="field">
-      <div class="field-label">Synonyms (optional)</div>
-      <input type="text" id="synonyms-input" placeholder="separate with ; — e.g. trái phiếu xanh; green finance" maxlength="3000">
-      <div class="field-hint">A Vietnamese equivalent is generated automatically — add extra
-        synonyms here only if you want to supplement it. Semicolon-separated.</div>
-    </div>
-
-    <button class="submit-btn" id="submit-btn" onclick="submitForm()">Add Keyword →</button>
+    <button class="submit-btn" id="submit-btn" onclick="submitForm()">Send →</button>
 
   </div>
 
   <!-- Confirmation -->
   <div class="confirmation" id="confirmation">
     <div class="check-circle">✓</div>
-    <h2>Keyword added</h2>
-    <p>The new row is now in the Keyword_Dictionary sheet.</p>
+    <h2>Got it</h2>
+    <p>We'll take this into account for future reports.</p>
   </div>
 
   <div class="footer">FinPulse Market Intelligence · Techcombank</div>
 </div>
 
 <script>
-
+  // Same Lambda Function URL + shared secret as the preferences form — see the
+  // security note in lambda/lambda_function.py's docstring. The browser never talks
+  // to Google directly: the Lambda relays this to the Apps Script Web App server-side
+  // (report_lib/keyword_webapp.py), reading that Web App's own URL/secret from S3 —
+  // neither is ever exposed here. If RESEND_SHARED_SECRET is ever rotated, update it
+  // on the Lambda's environment variables AND this value (and preferences_form.html's)
+  // together.
   const RESEND_ENDPOINT = 'https://olpwvwoyuaot234dbb43hjt2sy0ywcgb.lambda-url.ap-southeast-1.on.aws/';
   const SHARED_SECRET = 'VAP7TcINed01xl_qsL_4j_HrjENH3icUcorau4fsQP4';
 
@@ -241,11 +261,10 @@
 
     const category = document.getElementById('category-input').value;
     const keyword  = document.getElementById('keyword-input').value.trim();
-    const synonyms = document.getElementById('synonyms-input').value.trim();
 
     const errEl = document.getElementById('error-msg');
     if (!category || !keyword) {
-      errEl.textContent = 'Please fill in the required fields.';
+      errEl.textContent = 'Please fill in both fields.';
       errEl.style.display = 'block';
       return;
     }
@@ -255,12 +274,12 @@
     const originalLabel = btn.textContent;
     isSubmitting = true;
     btn.disabled = true;
-    btn.textContent = 'Adding…';
+    btn.textContent = 'Sending…';
 
     fetch(RESEND_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-FinPulse-Secret': SHARED_SECRET },
-      body: JSON.stringify({ action: 'add_keyword', category, keyword, synonyms }),
+      body: JSON.stringify({ action: 'add_keyword', category, keyword }),
     })
     .then(r => r.json().then(data => ({ ok: r.ok, data })))
     .then(({ ok, data }) => {
