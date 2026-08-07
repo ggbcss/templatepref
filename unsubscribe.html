@@ -104,6 +104,7 @@
     }
     .submit-btn:hover { background: #c0142e; }
     .submit-btn:active { background: #a01028; }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .cancel-link {
       display: block;
@@ -183,7 +184,7 @@
       <textarea id="reason-input" placeholder="Let us know why you're unsubscribing..."></textarea>
     </div>
 
-    <button class="submit-btn" onclick="submitForm()">Confirm Unsubscribe</button>
+    <button class="submit-btn" id="submit-btn" onclick="submitForm()">Confirm Unsubscribe</button>
     <a class="cancel-link" href="javascript:history.back()">Cancel, keep my subscription</a>
 
   </div>
@@ -201,7 +202,11 @@
 <script>
   const FORMSPREE_ENDPOINT = 'https://formspree.io/f/maqrkzqn';
 
+  let isSubmitting = false;
+
   function submitForm() {
+    if (isSubmitting) return;
+
     const email  = document.getElementById('email-input').value.trim();
     const reason = document.getElementById('reason-input').value.trim();
 
@@ -214,6 +219,12 @@
     errEl.style.display = 'none';
 
     const subject = `[FinPulse] Unsubscribe Request — ${email}`;
+
+    const btn = document.getElementById('submit-btn');
+    const originalLabel = btn.textContent;
+    isSubmitting = true;
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
 
     fetch(FORMSPREE_ENDPOINT, {
       method: 'POST',
@@ -231,6 +242,9 @@
         const detail = (data.errors || []).map(e => e.message).join(', ');
         errEl.textContent = detail || 'Submission failed. Please try again.';
         errEl.style.display = 'block';
+        isSubmitting = false;
+        btn.disabled = false;
+        btn.textContent = originalLabel;
         return;
       }
       document.getElementById('form-body').style.display = 'none';
@@ -239,6 +253,9 @@
     .catch(() => {
       errEl.textContent = 'Submission failed. Please try again.';
       errEl.style.display = 'block';
+      isSubmitting = false;
+      btn.disabled = false;
+      btn.textContent = originalLabel;
     });
   }
 </script>
