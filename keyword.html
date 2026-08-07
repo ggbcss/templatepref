@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinPulse — Add a Keyword</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f4f4;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.10);
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #E31837;
+      padding: 28px 32px 24px;
+      color: white;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .brand-dot {
+      width: 10px; height: 10px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.7;
+    }
+    .brand-name {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      opacity: 0.9;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .header p {
+      font-size: 13px;
+      opacity: 0.80;
+      margin-top: 5px;
+    }
+
+    /* ── Body ── */
+    .body { padding: 28px 32px; }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #aaa;
+      margin-bottom: 8px;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #222;
+      outline: none;
+      background: white;
+    }
+    select:focus, input[type="text"]:focus { border-color: #E31837; }
+
+    .field { margin-bottom: 20px; }
+    .field-hint {
+      font-size: 12px;
+      color: #999;
+      margin-top: 6px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: #E31837;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      padding: 15px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      transition: background 0.15s;
+    }
+    .submit-btn:hover { background: #c0142e; }
+    .submit-btn:active { background: #a01028; }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── Confirmation ── */
+    .confirmation {
+      display: none;
+      text-align: center;
+      padding: 48px 32px;
+    }
+    .check-circle {
+      width: 64px; height: 64px;
+      background: #f0fdf4;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 28px;
+    }
+    .confirmation h2 { font-size: 20px; color: #1a1a1a; margin-bottom: 8px; }
+    .confirmation p { font-size: 14px; color: #777; line-height: 1.6; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #ccc;
+      padding: 14px 32px;
+      border-top: 1px solid #f2f2f2;
+    }
+
+    .error-msg {
+      background: #fff5f5;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div class="brand-dot"></div>
+      <div class="brand-name">FinPulse · Techcombank</div>
+    </div>
+    <h1>Add a keyword</h1>
+    <p>Adds a row directly to the MRT keyword dictionary</p>
+  </div>
+
+  <!-- Form body -->
+  <div class="body" id="form-body">
+
+    <div class="error-msg" id="error-msg">Please fill in the required fields.</div>
+
+    <div class="field">
+      <div class="field-label">Category</div>
+      <select id="category-input">
+        <!-- Injected by JS -->
+      </select>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Keyword</div>
+      <input type="text" id="keyword-input" placeholder="e.g. green bond" maxlength="200">
+    </div>
+
+    <div class="field">
+      <div class="field-label">Synonyms (optional)</div>
+      <input type="text" id="synonyms-input" placeholder="separate with ; — e.g. trái phiếu xanh; green finance" maxlength="3000">
+      <div class="field-hint">A Vietnamese equivalent is generated automatically — add extra
+        synonyms here only if you want to supplement it. Semicolon-separated.</div>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitForm()">Add Keyword →</button>
+
+  </div>
+
+  <!-- Confirmation -->
+  <div class="confirmation" id="confirmation">
+    <div class="check-circle">✓</div>
+    <h2>Keyword added</h2>
+    <p>The new row is now in the Keyword_Dictionary sheet.</p>
+  </div>
+
+  <div class="footer">FinPulse Market Intelligence · Techcombank</div>
+</div>
+
+<script>
+
+  const RESEND_ENDPOINT = 'https://olpwvwoyuaot234dbb43hjt2sy0ywcgb.lambda-url.ap-southeast-1.on.aws/';
+  const SHARED_SECRET = 'VAP7TcINed01xl_qsL_4j_HrjENH3icUcorau4fsQP4';
+
+  let isSubmitting = false;
+
+  // Keep in sync with the CATEGORIES array in the Apps Script (deploy/apps_script_add_keyword_deploy.md).
+  const CATEGORIES = [
+    'Capital',
+    'Interbank Rate & Liquidity',
+    'Term Deposits',
+    'Cost of Fund',
+    'Lending & Credit',
+    'Credit Cards',
+    'Digital & Technology',
+    'Martech & Brand',
+    'Business Performance',
+    'Partnership',
+    'Regulation',
+    'Real Estate',
+    'Insurance',
+  ];
+
+  function init() {
+    const sel = document.getElementById('category-input');
+    CATEGORIES.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      sel.appendChild(opt);
+    });
+  }
+
+  function submitForm() {
+    if (isSubmitting) return;
+
+    const category = document.getElementById('category-input').value;
+    const keyword  = document.getElementById('keyword-input').value.trim();
+    const synonyms = document.getElementById('synonyms-input').value.trim();
+
+    const errEl = document.getElementById('error-msg');
+    if (!category || !keyword) {
+      errEl.textContent = 'Please fill in the required fields.';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const btn = document.getElementById('submit-btn');
+    const originalLabel = btn.textContent;
+    isSubmitting = true;
+    btn.disabled = true;
+    btn.textContent = 'Adding…';
+
+    fetch(RESEND_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-FinPulse-Secret': SHARED_SECRET },
+      body: JSON.stringify({ action: 'add_keyword', category, keyword, synonyms }),
+    })
+    .then(r => r.json().then(data => ({ ok: r.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) {
+        errEl.textContent = data.error || 'Submission failed. Please try again.';
+        errEl.style.display = 'block';
+        isSubmitting = false;
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+        return;
+      }
+      document.getElementById('form-body').style.display = 'none';
+      document.getElementById('confirmation').style.display = 'block';
+    })
+    .catch(() => {
+      errEl.textContent = 'Submission failed. Please try again.';
+      errEl.style.display = 'block';
+      isSubmitting = false;
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    });
+  }
+
+  init();
+</script>
+</body>
+</html>
