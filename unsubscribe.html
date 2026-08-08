@@ -89,6 +89,26 @@
 
     .field { margin-bottom: 20px; }
 
+    .email-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f9f9f9;
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
+      padding: 11px 16px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #666;
+    }
+    .email-badge .dot {
+      width: 8px; height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .email-badge strong { color: #222; }
+
     .submit-btn {
       width: 100%;
       background: #E31837;
@@ -174,9 +194,9 @@
 
     <div class="error-msg" id="error-msg">Please enter your email address.</div>
 
-    <div class="field">
-      <div class="field-label">Your email</div>
-      <input type="email" id="email-input" placeholder="your email">
+    <div class="email-badge">
+      <div class="dot"></div>
+      Unsubscribing: <strong id="email-display"></strong>
     </div>
 
     <div class="field">
@@ -200,26 +220,44 @@
 </div>
 
 <script>
-  // Same finpulse-instant-resend Lambda Function URL as preferences_form.html. This secret
-  // is visible to anyone who views this page's source — see the security note in
-  // lambda/lambda_function.py's docstring for why that's an accepted tradeoff for v1,
-  // not an oversight. If the secret is ever rotated, update RESEND_SHARED_SECRET on the
-  // Lambda's environment variables AND this value (and preferences_form.html's) together,
-  // or auth breaks.
+  // Same finpulse-instant-resend Lambda Function URL as preferences_form.html. Auth is a
+  // per-subscriber signed, expiring token (email/exp/token) read from this page's own URL —
+  // issued by send_reports.py into that subscriber's personalized report-email link. No
+  // static secret here anymore — see report_lib/link_tokens.py and
+  // lambda/lambda_function.py's docstring.
   const RESEND_ENDPOINT = 'https://olpwvwoyuaot234dbb43hjt2sy0ywcgb.lambda-url.ap-southeast-1.on.aws/';
-  const SHARED_SECRET = 'VAP7TcINed01xl_qsL_4j_HrjENH3icUcorau4fsQP4';
 
   let isSubmitting = false;
+  let linkEmail = '';
+  let linkExp = '';
+  let linkToken = '';
+
+  /* ── Parse URL params ── */
+  function init() {
+    const p = new URLSearchParams(window.location.search);
+    linkEmail = p.get('email') || '';
+    linkExp   = p.get('exp') || '';
+    linkToken = p.get('token') || '';
+
+    if (!linkEmail || !linkExp || !linkToken) {
+      const errEl = document.getElementById('error-msg');
+      errEl.textContent = 'This link is missing or invalid. Please use the link from your latest report email.';
+      errEl.style.display = 'block';
+      document.getElementById('submit-btn').disabled = true;
+      return;
+    }
+
+    document.getElementById('email-display').textContent = linkEmail;
+  }
 
   function submitForm() {
     if (isSubmitting) return;
 
-    const email  = document.getElementById('email-input').value.trim();
     const reason = document.getElementById('reason-input').value.trim();
 
     const errEl = document.getElementById('error-msg');
-    if (!email) {
-      errEl.textContent = 'Please enter your email address.';
+    if (!linkEmail || !linkExp || !linkToken) {
+      errEl.textContent = 'This link is missing or invalid. Please use the link from your latest report email.';
       errEl.style.display = 'block';
       return;
     }
@@ -233,8 +271,8 @@
 
     fetch(RESEND_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-FinPulse-Secret': SHARED_SECRET },
-      body: JSON.stringify({ action: 'unsubscribe', email, reason }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'unsubscribe', email: linkEmail, reason, exp: linkExp, token: linkToken }),
     })
     .then(r => r.json().then(data => ({ ok: r.ok, data })))
     .then(({ ok, data }) => {
@@ -257,6 +295,8 @@
       btn.textContent = originalLabel;
     });
   }
+
+  init();
 </script>
 </body>
 </html>
