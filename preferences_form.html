@@ -200,14 +200,9 @@
   <!-- Form body -->
   <div class="body" id="form-body">
 
-    <div style="margin-bottom: 24px;">
-      <div class="group-label" style="margin-bottom: 8px;">Your email</div>
-      <input type="email" id="email-input"
-        placeholder="your email"
-        style="width:100%; padding: 10px 14px; border: 1.5px solid #ddd; border-radius: 6px;
-               font-size: 14px; font-family: inherit; color: #222; outline: none;"
-        onfocus="this.style.borderColor='#E31837'"
-        onblur="this.style.borderColor='#ddd'">
+    <div class="email-badge">
+      <div class="dot"></div>
+      Updating preferences for: <strong id="email-display"></strong>
     </div>
 
     <div class="error-msg" id="error-msg">Please select at least one section.</div>
@@ -234,13 +229,13 @@
 </div>
 
 <script>
-  // Deployed 2026-08-05: finpulse-instant-resend Lambda Function URL. This secret is
-  // visible to anyone who views this page's source — see the security note in
-  // lambda/lambda_function.py's docstring for why that's an accepted tradeoff for v1,
-  // not an oversight. If the secret is ever rotated, update RESEND_SHARED_SECRET on the
-  // Lambda's environment variables AND this value together, or auth breaks.
+  // finpulse-instant-resend Lambda Function URL. Auth is a per-subscriber signed, expiring
+  // token (email/exp/token) read from this page's own URL — issued by send_reports.py (or a
+  // prior resend) into that subscriber's personalized report-email link. There is no static
+  // secret here anymore: the token only proves identity for the specific email/exp it was
+  // signed for, so it can't be reused for another subscriber. See report_lib/link_tokens.py
+  // and lambda/lambda_function.py's docstring.
   const RESEND_ENDPOINT = 'https://olpwvwoyuaot234dbb43hjt2sy0ywcgb.lambda-url.ap-southeast-1.on.aws/';
-  const SHARED_SECRET = 'VAP7TcINed01xl_qsL_4j_HrjENH3icUcorau4fsQP4';
 
   let isSubmitting = false;
 
@@ -261,14 +256,31 @@
     return {
       email:    p.get('email') || '',
       sections: (p.get('sections') || '').split(';').map(s => s.trim()).filter(Boolean),
+      exp:      p.get('exp') || '',
+      token:    p.get('token') || '',
     };
   }
 
+  let linkEmail = '';
+  let linkExp = '';
+  let linkToken = '';
+
   /* ── Build the form ── */
   function init() {
-    const { email, sections } = getParams();
+    const { email, sections, exp, token } = getParams();
+    linkEmail = email;
+    linkExp = exp;
+    linkToken = token;
 
-    if (email) document.getElementById('email-input').value = email;
+    if (!email || !exp || !token) {
+      document.getElementById('error-msg').textContent =
+        'This link is missing or invalid. Please use the link from your latest report email.';
+      document.getElementById('error-msg').style.display = 'block';
+      document.getElementById('submit-btn').disabled = true;
+      return;
+    }
+
+    document.getElementById('email-display').textContent = email;
 
     // Sections
     const sl = document.getElementById('sections-list');
@@ -289,12 +301,11 @@
   function submitForm() {
     if (isSubmitting) return;
 
-    const email    = document.getElementById('email-input').value.trim();
     const sections = [...document.querySelectorAll('input[name="section"]:checked')].map(cb => cb.value);
 
     const errEl = document.getElementById('error-msg');
-    if (!email) {
-      errEl.textContent = 'Please enter your email address.';
+    if (!linkEmail || !linkExp || !linkToken) {
+      errEl.textContent = 'This link is missing or invalid. Please use the link from your latest report email.';
       errEl.style.display = 'block';
       return;
     }
@@ -313,8 +324,8 @@
 
     fetch(RESEND_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-FinPulse-Secret': SHARED_SECRET },
-      body: JSON.stringify({ email, sections }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: linkEmail, sections, exp: linkExp, token: linkToken }),
     })
     .then(r => r.json().then(data => ({ ok: r.ok, data })))
     .then(({ ok, data }) => {
